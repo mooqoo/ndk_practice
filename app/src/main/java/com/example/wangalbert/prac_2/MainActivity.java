@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -23,11 +24,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
+
   private static final String FRAME_DUMP_FOLDER_PATH = Environment.getExternalStorageDirectory()
     + File.separator + "android-ffmpeg-tutorial01";
-  private EditText mEditNumOfFrames;
 
   TextView tv_msg;
+  ViewPager mViewPagerFrames;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    mViewPagerFrames = (ViewPager) this.findViewById(R.id.viewPagerFrames);
     tv_msg = (TextView) findViewById(R.id.tv_msg);
     tv_msg.setText(getMsgFromJni());
 
@@ -71,6 +74,14 @@ public class MainActivity extends AppCompatActivity {
     task.execute();
   }
 
+  private void displayDumpedFrames(){
+    //populate the view pager
+    if (null != mViewPagerFrames) {
+      VideoFrameAdapter adapter = new VideoFrameAdapter(MainActivity.this,
+        FRAME_DUMP_FOLDER_PATH);
+      mViewPagerFrames.setAdapter(adapter);
+    }
+  }
 
   private static class DumpFrameTask extends AsyncTask<Void, Integer, Void> {
     int mlNumOfFrames;
@@ -94,9 +105,11 @@ public class MainActivity extends AppCompatActivity {
       if (null != mlDialog && mlDialog.isShowing()) {
         mlDialog.dismiss();
       }
+      mlOuterAct.displayDumpedFrames();
     }
   }
 
+  // this is called by c file
   private void saveFrameToPath(Bitmap bitmap, String pPath) {
     int BUFFER_SIZE = 1024 * 8;
     try {
